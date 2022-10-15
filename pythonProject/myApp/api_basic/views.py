@@ -4,7 +4,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from .models import Asset
+from .models import Report
 from .serializers import ArticleSerializers
+from .serializers import ReportSerializers
 from rest_framework import generics
 from rest_framework import mixins
 
@@ -47,18 +49,24 @@ class GenericAPIList(generics.GenericAPIView, mixins.ListModelMixin, mixins.Crea
     def delete(self, request, id):
         return self.destroy(request, id)
 
+class ReportList(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,
+                       mixins.RetrieveModelMixin, mixins.DestroyModelMixin):
+    serializer_class = ReportSerializers
+    queryset = Report.objects.all()
 
-class ArticleAPIView(APIView):
+    lookup_field = 'id'
 
-    def get(self, request):
-        articles = Asset.objects.all()
-        serializer = ArticleSerializers(articles, many=True)
-        return Response(serializer.data)
+    def get(self, request, id=None):
+        if id:
+            return self.retrieve(request, id)
+        else:
+            return self.list(request, id)
 
     def post(self, request):
-        serializer = ArticleSerializers(data=request.data)
+        return self.create(request)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, id=None):
+        return self.update(request, id)
+
+    def delete(self, request, id):
+        return self.destroy(request, id)
